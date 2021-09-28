@@ -3,48 +3,143 @@
 <head>
     <title><%= title %></title>
     <script src="/socket.io/socket.io.js"></script>
-    <link rel='stylesheet' href='/stylesheets/style.css'/>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/stylesheets/imageTable.css">
+    <link rel="stylesheet" type="text/css" href="/stylesheets/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/stylesheets/style.css">
+    <link rel="stylesheet" type="text/css" href="/stylesheets/index.css">
+    <script src="/javascripts/jquery.min.js"></script>
+    <script src="/javascripts/bootstrap.min.js"></script>
+    <script src="/javascripts/idb.js"></script>
+    <script src="/javascripts/indexDB.js"></script>
     <script src="/javascripts/index.js"></script>
     <script src="/javascripts/canvas.js"></script>
+    <script src="/javascripts/uploadImg.js"></script>
+
 </head>
+
+
+<!--call the init method when load the html page-->
 <body onload="init()">
-<div id="initial_form" style="display: block">
-    <h1><%= title %></h1>
-    <p>Please insert the id of the Room you want to Join, if you do not have a room id, click Generate Room</p>
-    <form onsubmit="return false;">
-        <p><label for="name"> Your name </label>
-            <input type="text" id="name" name="name">
-        </p>
-        <p>
-            <label for="roomNo"> Your room </label>
-            <input type="text" id="roomNo" name="roomNo">
-            <button id="roomNoGenerator" onclick="generateRoom()">Generate Room</button>
-        </p>
-        <p style=" width: 100%"><label for="image_url"> Image (URL) </label><input type="text" id="image_url" name="image_url"></p>
-        <button id="connect" onclick="connectToRoom()">Connect</button>
-    </form>
+
+
+<!-- login page -->
+<div id="initial_form" style="display: block" class="box">
+
+    <div class="login-box">
+        <div class="login-title text-center">
+            <h1><small>Welcome Here</small></h1>
+            <div class="offline_div" id="offline_div" style="display: none">
+                <h4> <small>You are offline</small></h4>
+            </div>
+
+            <div class="grey1">Please insert the id of the Room you want to Join,<br>
+                You can communicate with friends in this room.
+            </div>
+        </div>
+
+
+        <!-- form for user log in    -->
+        <div class="login-content">
+            <div class="form">
+                <form onsubmit="return false;" class="form-horizontal">
+
+                    <!-- username -->
+                    <div class="form-group">
+                        <div class="col-xs-10 col-xs-offset-1">
+                            <div class="input-group">
+						     <span class="input-group-addon">
+						        <span>Your name: </span>
+						     </span>
+                                <input type="text" id="name" name="name" class="form-control"
+                                       placeholder="Please input your name">
+
+                            </div>
+                        </div>
+                    </div>
+                    <!-- room_number -->
+
+                    <div class="form-group">
+                        <div class="col-xs-10 col-xs-offset-1">
+                            <div class="input-group">
+                                <span class="input-group-addon"><span>Room id</span></span>
+                                <p><input type="text" id="roomNo" name="roomNo" class="form-control"
+                                          placeholder="Please input the room id"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-xs-10 col-xs-offset-1">
+                            <div class="input-group">
+                                <span class="input-group-addon"><span>Image url</span></span>
+                                <p><input type="text" id="image_url" name="image_url"
+                                          class="form-control"
+                                          placeholder="Please input the image url"></p>
+                                <!-- call the generateRoom() method to generate the random room id -->
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                    <p id="status"></p>
+                    <!-- connect_button -->
+                    <div class="form-group form-actions">
+                        <div class="col-xs-12 text-center">
+                            <button id="connect" onclick="chatToRoom()">GO!
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
-<div id="chat_interface" style="display: none">
-    <div>
-    <p><div id="who_you_are" style="display: inline" style="height: 10vh"></div>, you are in room: <div id="in_room" style="display: inline"></div>
+
+
+<!-- chat page -->
+<div id="chat_interface" class="head" style="display: none">
+    <div id="chat_container" style="color:#FFFFFF;text-align: center">
+        <h1>Welcome here, you can talk about this picture whit others in the same room.</h1></div>
+
+    <div class="offline_div_chat" id="offline_div_chat" style="display: none;color: #e8e8e8">
+        <h4> You are offline</h4>
     </div>
-    </p>
-    <div style="width: 100%; height: 50vh">
-            <img id="image" height="100%" >
-            <canvas  id="canvas" ></canvas>
+
+    <div id="who_you_are" style="display: inline;color: red; height: 10vh"></div>
+    <font color="red" >, your room id :</font>
+    <div id="in_room" style="display: inline;color:red">
+        .</div>
+</div>
+
+
+<div style="width: 100%"  id="imageDiv">
+    <div class="canvasbox" style="width:60%;float:left">
+        <div class="canvasbox_sub">
+            <img id="image" height="100%" width="100%">
+            <canvas id="canvas"></canvas>
+            <br/>
+        </div>
+
+
     </div>
-<!--    </div>-->
-    <div id="history" style="height: 35vh" class="boxed scrolling" ></div>
-    <div id="input" style="height: 5vh" class=" boxed">
-        <form onsubmit="return false;" style="width: 100%">
-            <p>
-                <label for="name"> chat: </label>
-                <input type="text" id="chat_input" name="chat_input" style="width: 80%">
-                <button id="chat_send" onclick="sendChatText()">Send</button>
-            </p>
-        </form>
+    <div class="talk_con" style="width: 40%;float: left">
+        <div class="talk_show">
+            <div id="chat_history" style="display: none;height: 60vh; margin-top: 10px; color: #e8e8e8;font-size: 15px" class="boxed scrolling"></div>
+        </div>
+
+        <div class="talk_input">
+            <div id="chat_box" style="display: none;height: 5vh" class="boxed">
+                <form onsubmit="return false;" style="width: 100%">
+                    <p>
+                        <input class="talk_word" type="text" id="chat_input" name="chat_input" style="color: #e8e8e8">
+                        <button class="talk_sub" id="chat_send" onclick="sendChatText()" style="color: #e8e8e8;font-size: 15px">Send</button>
+                    </p>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
+
+
 </body>
 </html>
