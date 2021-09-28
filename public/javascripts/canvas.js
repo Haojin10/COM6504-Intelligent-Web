@@ -4,6 +4,8 @@
 let room;
 let userId;
 let color = 'red', thickness = 4;
+let socket ;
+let image;
 
 /**
  * it inits the image canvas to draw on. It sets up the events to respond to (click, mouse on, etc.)
@@ -11,8 +13,11 @@ let color = 'red', thickness = 4;
  * @param sckt the open socket to register events on
  * @param imageUrl teh image url to download
  */
-function initCanvas(sckt, imageUrl) {
+function initCanvas(sckt, imageUrl, roomNo, name) {
     socket = sckt;
+    room = roomNo;
+    userId = name;
+    image = imageUrl;
     let flag = false,
         prevX, prevY, currX, currY = 0;
     let canvas = $('#canvas');
@@ -23,6 +28,9 @@ function initCanvas(sckt, imageUrl) {
 
     // event on the canvas when the mouse is on it
     canvas.on('mousemove mousedown mouseup mouseout', function (e) {
+
+        // let userId_url_roomNumber = userId + '_' + image + '_' + room;
+        // updateAnnotation(ctx,userId_url_roomNumber);
         prevX = currX;
         prevY = currY;
         currX = e.clientX - canvas.position().left;
@@ -38,46 +46,91 @@ function initCanvas(sckt, imageUrl) {
             if (flag) {
                 drawOnCanvas(ctx, canvas.width, canvas.height, prevX, prevY, currX, currY, color, thickness);
                 // @todo if you draw on the canvas, you may want to let everyone know via socket.io (socket.emit...)  by sending them
-                // room, userId, canvas.width, canvas.height, prevX, prevY, currX, currY, color, thickness
+                socket.emit('draw', room, userId, canvas.width, canvas.height, prevX, prevY, currX, currY, color, thickness);
+                let curImage = document.getElementById('image_url').value;
+                let userId_url_roomNumber = userId + "_" + curImage + "_" + room;
+                let annotationObject = {
+                    userId_url_roomNumber: userId_url_roomNumber,
+                    canvas_width: canvas.width,
+                    canvas_height: canvas.height,
+                    prevX: prevX,
+                    prevY: prevY,
+                    currX: currX,
+                    currY: currY,
+                    color: color,
+                    thickness: thickness
+                }
+                storeAnnotationData(annotationObject);
             }
         }
+
+
     });
 
     // this is code left in case you need to  provide a button clearing the canvas (it is suggested that you implement it)
     $('.canvas-clear').on('click', function (e) {
-        let c_width = canvas.width();
-        let c_height = canvas.height();
+        let c_width = canvas.width;
+        let c_height = canvas.height;
         ctx.clearRect(0, 0, c_width, c_height);
-        // @todo if you clear the canvas, you want to let everyone know via socket.io (socket.emit...)
+        // The original picture will be delete with the annotation, so that the image need to be set again
 
+        // @todo if you clear the canvas, you want to let everyone know via socket.io (socket.emit...)
+        // socket.emit('draw',room, userId, canvas.width, canvas.height, prevX, prevY, currX, currY, color, thickness)
+        socket.emit('clear', room, userId, c_width, c_height);
+        cleaChatHistory();
+        let newImage = document.getElementById('image_url').value;
+        let userId_url_roomNumber = userId + '_' + newImage + '_' + room;
+        deleteAnnotation(userId_url_roomNumber);
     });
 
-    // @todo here you want to capture the event on the socket when someone else is drawing on their canvas (socket.on...)
+    // update the annotation history if the button is clicked
+    $('.canvas-show').on('click', function (e) {
+        let newImage = document.getElementById('image_url').value;
+        let userId_url_roomNumber = userId + '_' + newImage + '_' + room;
+        updateAnnotation(ctx,userId_url_roomNumber);
+    });
+
+    socket.on('clear', function (room, userId, width, height) {
+        let ctx = canvas[0].getContext('2d');
+        ctx.clearRect(0, 0, width, height);
+    });
+
+
+    // @todo here you want to capture the event on the socket when someone else is drawing on their canvas (socket.on...);
     // I suggest that you receive userId, canvasWidth, canvasHeight, x1, y21, x2, y2, color, thickness
     // and then you call
     //     let ctx = canvas[0].getContext('2d');
     //     drawOnCanvas(ctx, canvasWidth, canvasHeight, x1, y21, x2, y2, color, thickness)
 
+    socket.on('draw', function (room, userId, width, height, prev_X, prev_Y, curr_X, curr_Y, color_, thickness_) {
+        let ctx = canvas[0].getContext('2d');
+        drawOnCanvas(ctx, width, height, prev_X, prev_Y, curr_X, curr_Y, color_, thickness_);
+    });
+
+
     // this is called when the src of the image is loaded
     // this is an async operation as it may take time
     img.addEventListener('load', () => {
+
+
         // it takes time before the image size is computed and made available
         // here we wait until the height is set, then we resize the canvas based on the size of the image
         let poll = setInterval(function () {
             if (img.naturalHeight) {
                 clearInterval(poll);
                 // resize the canvas
-                let ratioX=1;
-                let ratioY=1;
+                let ratioX = 1;
+                let ratioY = 1;
                 // if the screen is smaller than the img size we have to reduce the image to fit
-                if (img.clientWidth>window.innerWidth)
-                    ratioX=window.innerWidth/img.clientWidth;
-                if (img.clientHeight> window.innerHeight)
-                    ratioY= img.clientHeight/window.innerHeight;
-                let ratio= Math.min(ratioX, ratioY);
+                if (img.clientWidth > window.innerWidth)
+                    ratioX = window.innerWidth / img.clientWidth;
+                if (img.clientHeight > window.innerHeight)
+                    ratioY = img.clientHeight / window.innerHeight;
+                let ratio = Math.min(ratioX, ratioY);
                 // resize the canvas to fit the screen and the image
-                cvx.width = canvas.width = img.clientWidth*ratio;
-                cvx.height = canvas.height = img.clientHeight*ratio;
+                cvx.width = canvas.width = img.clientWidth * ratio;
+                cvx.height = canvas.height = img.clientHeight * ratio;
+                ctx = cvx.getContext('2d');
                 // draw the image onto the canvas
                 drawImageScaled(img, cvx, ctx);
                 // hide the image element as it is not needed
@@ -121,15 +174,20 @@ function drawImageScaled(img, canvas, ctx) {
  * @param color of the line
  * @param thickness of the line
  */
+
 function drawOnCanvas(ctx, canvasWidth, canvasHeight, prevX, prevY, currX, currY, color, thickness) {
     //get the ration between the current canvas and the one it has been used to draw on the other comuter
-    let ratioX= canvas.width/canvasWidth;
-    let ratioY= canvas.height/canvasHeight;
+    if (ctx === null){
+        let cvx = document.getElementById('canvas');
+        ctx = cvx.getContext('2d');
+    }
+    let ratioX = canvas.width / canvasWidth;
+    let ratioY = canvas.height / canvasHeight;
     // update the value of the points to draw
-    prevX*=ratioX;
-    prevY*=ratioY;
-    currX*=ratioX;
-    currY*=ratioY;
+    prevX *= ratioX;
+    prevY *= ratioY;
+    currX *= ratioX;
+    currY *= ratioY;
     ctx.beginPath();
     ctx.moveTo(prevX, prevY);
     ctx.lineTo(currX, currY);
