@@ -2,10 +2,9 @@ var express = require('express');
 var router = express.Router();
 
 /* GET home page. */
-router.get('/', function (req, res, next) {
-  res.render('index', {title: 'Data pirates'});
+router.get('/', function(req, res, next) {
+  res.render('index', { title: 'Image Browsing' });
 });
-
 /**
  *  POST the data about the image.
  *  parameters in body:
@@ -29,6 +28,7 @@ router.post('/imageRoute', function (req, res, next) {
   }
 });
 
+
 /**
  *  POST the data about the chat.
  *  parameters in body:
@@ -51,6 +51,5 @@ router.post('/chatRoute', function (req, res, next) {
     res.send(JSON.stringify(chatData));
   }
 });
-
 
 module.exports = router;

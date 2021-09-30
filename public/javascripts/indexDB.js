@@ -1,4 +1,4 @@
-index.jslet db;
+let db;
 // Define the database name for un
 const APPLICATION_DB_NAME = 'db_application';
 const CHAT_STORE_NAME = 'store_chat';
@@ -128,7 +128,7 @@ async function storeChatData(chatObject) {
     }
 }
 
-window.storeImageData = storeImageData;
+window.storeChatData = storeChatData;
 
 
 /*
@@ -159,7 +159,7 @@ async function storeAnnotationData(annotationObject) {
     }
 }
 
-window.storeImageData = storeImageData;
+window.storeAnnotationData = storeAnnotationData;
 
 /*
 * Check if the image is in indexDB
@@ -274,7 +274,7 @@ async function getChat(roomNumber_image) {
     }
 }
 
-window.getAnnotation = getAnnotation;
+window.getChat = getChat;
 
 /*
 * Check if the image is same as the previous image, if it is same, load the chat message
@@ -291,7 +291,7 @@ async function checkFromIDB(roomNo, userId, imageURL) {
         console.log('The image is not in index DB');
     } else {
         //If find the the image, update the chat history
-        let roomNumber_image = roomNo + '_' + imageURL + '_' + userId;
+        let roomNumber_image = roomNo + '_' + imageURL;
         await updateChat(roomNumber_image, userId);
     }
 }
