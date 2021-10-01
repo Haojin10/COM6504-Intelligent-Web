@@ -245,3 +245,24 @@ function sendAjaxQueryForChat(url, data) {
         }
     });
 }
+
+
+
+/*
+* Read the image from local
+* */
+function readLocalImage() {
+    let url = null;
+    let file = document.querySelector('input[type=file]').files[0];
+    let reader = new FileReader();
+    let input = document.getElementById('image_url');
+
+    reader.addEventListener("load", function () {
+        url = reader.result;
+        input.value = url;
+    }, false);
+
+    if (file) {
+        reader.readAsDataURL(file);
+    }
+}

@@ -90,7 +90,7 @@ async function storeImageData(imageObject) {
         }
 
     }
-    // else localStorage.setItem(imageObject.sum, JSON.stringify(chatObject));
+
     else {
         console.log('error: I could not store the element. Reason: ' + error);
     }
