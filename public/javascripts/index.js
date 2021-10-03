@@ -170,18 +170,11 @@ function sendAjaxQueryForImage(url, data) {
         dataType: 'json',
         type: 'POST',
         success: function (dataR) {
-            // no need to JSON parse the result, as we are using
-            // dataType:json, so JQuery knows it and unpacks the
-            // object for us before returning it
-            // in order to have the object printed by alert
-            // we need to JSON.stringify the object
+
             storeImageData(dataR);
         },
         error: function (response) {
-            // the error structure we passed is in the field responseText
-            // it is a string, even if we returned as JSON
-            // if you want o unpack it you must do:
-            // const dataR= JSON.parse(response.responseText)
+
             console.log(response.responseText);
             // Store the image data object in the indexDB database, if offline
             storeImageData(data);
@@ -227,18 +220,11 @@ function sendAjaxQueryForChat(url, data) {
         dataType: 'json',
         type: 'POST',
         success: function (dataR) {
-            // no need to JSON parse the result, as we are using
-            // dataType:json, so JQuery knows it and unpacks the
-            // object for us before returning it
-            // in order to have the object printed by alert
-            // we need to JSON.stringify the object
+
             storeChatData(dataR);
         },
         error: function (response) {
-            // the error structure we passed is in the field responseText
-            // it is a string, even if we returned as JSON
-            // if you want o unpack it you must do:
-            // const dataR= JSON.parse(response.responseText)
+
             console.log(response.responseText);
             // Store the chat data object in the indexDB database, if off-line
             storeChatData(data);

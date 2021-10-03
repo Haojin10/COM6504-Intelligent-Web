@@ -237,13 +237,7 @@ async function getAnnotation(userId_url_roomNumber) {
 
 window.getAnnotation = getAnnotation;
 
-/*
-* Get the chat message from indexDB
-* para:
-* roomNumber_image: the index for retrieve the chat, the form is: roomNumber_image,
-* for example:
-* R9141_https://comicvine1.cbsistatic.com/uploads/original/8/82727/1525513-the_moutain____by_vincentfavre.jpg
-* */
+
 async function getChat(roomNumber_image) {
     if (!db)
         await initDatabase();
@@ -375,27 +369,4 @@ async function deleteAnnotation(userId_url_roomNumber) {
 }
 window.deleteAnnotation = deleteAnnotation;
 
-// /*
-// * delete the annotation data
-// * */
-// async function deleteImage(imgeurl) {
-//     if (!db)
-//         await initDatabase();
-//     if (db) {
-//         try {
-//             console.log('Deleting: ' + imgeurl);
-//             // Create transaction
-//             let tx = await db.transaction(IMAGE_STORE_NAME, 'readwrite');
-//             // Get object store
-//             let store = await tx.objectStore(IMAGE_STORE_NAME);
-//             await store.delete('https://comicvine1.cbsistatic.com/uploads/original/8/82727/1525513-the_moutain____by_vincentfavre.jpg');
-//             // transaction complete
-//             await tx.complete;
-//         } catch (error) {
-//             console.log('I could not delete the items because: ' + error);
-//         }
-//     } else {
-//         console.log('I could not delete the items because: ' + error);
-//     }
-// }
-// window.deleteImage = deleteImage;
+
